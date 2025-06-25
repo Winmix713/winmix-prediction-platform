@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { MatchSelector } from '@/components/MatchSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { upcomingMatches, premierLeagueTeams } from '@/data/mockData';
 import { algorithmConfigs } from '@/data/algorithms';
 import { PredictionService } from '@/services/predictionService';
@@ -43,7 +43,7 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {algorithmConfigs.slice(0, 4).map((algo) => (
+              {algorithmConfigs.map((algo) => (
                 <div
                   key={algo.id}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -88,7 +88,7 @@ const Index = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
                   {prediction.homeWinProbability}%
@@ -96,12 +96,14 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">
                   {selectedMatch.homeTeam.shortName} Win
                 </div>
+                <Progress value={prediction.homeWinProbability} className="mt-2" />
               </div>
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-yellow-600">
                   {prediction.drawProbability}%
                 </div>
                 <div className="text-sm text-muted-foreground">Draw</div>
+                <Progress value={prediction.drawProbability} className="mt-2" />
               </div>
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
@@ -110,10 +112,11 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">
                   {selectedMatch.awayTeam.shortName} Win
                 </div>
+                <Progress value={prediction.awayWinProbability} className="mt-2" />
               </div>
             </div>
             
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <h4 className="font-medium mb-2">Expected Goals</h4>
                 <div className="space-y-1">
@@ -140,7 +143,43 @@ const Index = () => {
                   </div>
                 </div>
               </div>
+              {prediction.additionalMetrics && (
+                <div>
+                  <h4 className="font-medium mb-2">Additional Metrics</h4>
+                  <div className="space-y-1">
+                    {prediction.additionalMetrics.bothTeamsScore && (
+                      <div className="flex justify-between">
+                        <span>Both Teams Score</span>
+                        <span className="font-medium">{prediction.additionalMetrics.bothTeamsScore}%</span>
+                      </div>
+                    )}
+                    {prediction.additionalMetrics.totalGoalsOver25 && (
+                      <div className="flex justify-between">
+                        <span>Over 2.5 Goals</span>
+                        <span className="font-medium">{prediction.additionalMetrics.totalGoalsOver25}%</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+
+            {prediction.additionalMetrics?.correctScoreProbabilities && (
+              <div className="mt-4 pt-4 border-t">
+                <h4 className="font-medium mb-2">Most Likely Scores</h4>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  {Object.entries(prediction.additionalMetrics.correctScoreProbabilities)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 6)
+                    .map(([score, prob]) => (
+                      <div key={score} className="text-center p-2 border rounded">
+                        <div className="font-medium">{score}</div>
+                        <div className="text-xs text-muted-foreground">{prob}%</div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
